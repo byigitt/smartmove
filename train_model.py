@@ -34,7 +34,7 @@ class MetroPassengerPredictor:
         df['DayOfWeek_Cos'] = np.cos(2 * np.pi * df['DayOfWeek']/7)
         
         # Extract station number from Station_ID
-        df['Station_Num'] = df['Station_ID'].str.extract('(\d+)').astype(int)
+        df['Station_Num'] = df['Station_ID'].str.extract(r'(\d+)').astype(int)
         
         # Calculate distance from central station (S29)
         df['Distance_From_Central'] = abs(df['Station_Num'] - 29)
@@ -62,7 +62,7 @@ class MetroPassengerPredictor:
         preprocessor = ColumnTransformer(
             transformers=[
                 ('num', StandardScaler(), numeric_features),
-                ('cat', OneHotEncoder(drop='first', sparse=False), categorical_features),
+                ('cat', OneHotEncoder(drop='first', sparse_output=False), categorical_features),
                 ('bool', 'passthrough', boolean_features)
             ],
             remainder='drop'  # Drop any other columns not specified
