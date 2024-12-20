@@ -39,6 +39,14 @@ class MetroPassengerPredictor:
         # Calculate distance from central station (S29)
         df['Distance_From_Central'] = abs(df['Station_Num'] - 29)
         
+        # Add non-linear features for better capturing the bell curve
+        df['Distance_Squared'] = df['Distance_From_Central'] ** 2
+        df['Distance_Gaussian'] = np.exp(-0.5 * (df['Distance_From_Central'] / 10) ** 2)
+        
+        # Interaction features
+        df['Peak_Distance'] = df['Distance_From_Central'] * (df['Time_Period'] == 'peak').astype(int)
+        df['Weekend_Distance'] = df['Distance_From_Central'] * df['Is_Weekend']
+        
         return df
     
     def create_feature_pipeline(self):
@@ -48,6 +56,8 @@ class MetroPassengerPredictor:
             'Hour', 'Hour_Sin', 'Hour_Cos', 
             'DayOfWeek_Sin', 'DayOfWeek_Cos',
             'Station_Num', 'Distance_From_Central',
+            'Distance_Squared', 'Distance_Gaussian',
+            'Peak_Distance', 'Weekend_Distance',
             'Boarding_Passengers', 'Alighting_Passengers',
             'Transfer_Out', 'Capacity_Utilization'
         ]
@@ -76,18 +86,20 @@ class MetroPassengerPredictor:
         
         if model_type == 'rf':
             regressor = RandomForestRegressor(
-                n_estimators=200,
-                max_depth=15,
-                min_samples_split=5,
+                n_estimators=300,  # Increased number of trees
+                max_depth=20,      # Increased depth for more complex patterns
+                min_samples_split=4,
                 min_samples_leaf=2,
+                max_features='sqrt',  # Better for handling non-linear relationships
                 n_jobs=-1,
                 random_state=42
             )
         else:  # gradient boosting
             regressor = GradientBoostingRegressor(
-                n_estimators=200,
-                max_depth=10,
-                learning_rate=0.1,
+                n_estimators=300,
+                max_depth=8,
+                learning_rate=0.05,  # Reduced learning rate for better generalization
+                subsample=0.8,      # Added subsampling for better generalization
                 random_state=42
             )
         
@@ -106,6 +118,8 @@ class MetroPassengerPredictor:
             'Hour', 'Hour_Sin', 'Hour_Cos', 
             'DayOfWeek_Sin', 'DayOfWeek_Cos',
             'Station_Num', 'Distance_From_Central',
+            'Distance_Squared', 'Distance_Gaussian',
+            'Peak_Distance', 'Weekend_Distance',
             'Metro_Line', 'Station_Type', 'Time_Period',
             'Is_Weekend', 'Boarding_Passengers',
             'Alighting_Passengers', 'Transfer_Out',
@@ -142,16 +156,23 @@ class MetroPassengerPredictor:
         # Train final model
         self.model.fit(X_train, y_train)
         
-        # Evaluate
-        self._evaluate_model(X_test, y_test)
+        # Store feature names before evaluation
+        categorical_features = ['Metro_Line', 'Station_Type', 'Time_Period']
+        numeric_and_bool_features = [col for col in feature_columns 
+                                   if col not in categorical_features]
         
-        # Store feature names for later use
-        self.feature_names = (
-            feature_columns +
+        # Get the encoded feature names for categorical variables
+        encoded_feature_names = (
             self.model.named_steps['preprocessor']
             .named_transformers_['cat']
-            .get_feature_names_out(categorical_features).tolist()
+            .get_feature_names_out(categorical_features)
         )
+        
+        # Combine all feature names
+        self.feature_names = numeric_and_bool_features + encoded_feature_names.tolist()
+        
+        # Evaluate
+        self._evaluate_model(X_test, y_test)
         
         return self.model
     
@@ -169,15 +190,48 @@ class MetroPassengerPredictor:
         print(f"R² Score: {r2:.4f}")
         print(f"MAPE: {mape:.4%}")
         
-        # Plot actual vs predicted
-        plt.figure(figsize=(10, 6))
-        plt.scatter(y_test, y_pred, alpha=0.5)
-        plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+        # Plot actual vs predicted with density
+        plt.figure(figsize=(12, 8))
+        
+        # Create hexbin plot for better visualization of density
+        plt.hexbin(y_test, y_pred, gridsize=30, cmap='YlOrRd')
+        plt.colorbar(label='Count')
+        
+        # Add diagonal reference line
+        plt.plot([y_test.min(), y_test.max()], 
+                [y_test.min(), y_test.max()], 
+                'r--', lw=2, label='Perfect Prediction')
+        
         plt.xlabel('Actual Passenger Load')
         plt.ylabel('Predicted Passenger Load')
-        plt.title('Actual vs Predicted Passenger Load')
+        plt.title('Actual vs Predicted Passenger Load\nwith Density Visualization')
+        plt.legend()
         plt.tight_layout()
         plt.savefig('prediction_performance.png')
+        plt.close()
+        
+        # Additional visualization: Plot load distribution by station
+        station_data = pd.DataFrame({
+            'Station_Num': X_test['Station_Num'],
+            'Actual': y_test,
+            'Predicted': y_pred
+        })
+        
+        plt.figure(figsize=(15, 6))
+        station_means = station_data.groupby('Station_Num')[['Actual', 'Predicted']].mean()
+        
+        plt.plot(station_means.index, station_means['Actual'], 
+                'b-', label='Actual Average Load', linewidth=2)
+        plt.plot(station_means.index, station_means['Predicted'], 
+                'r--', label='Predicted Average Load', linewidth=2)
+        
+        plt.xlabel('Station Number')
+        plt.ylabel('Average Passenger Load')
+        plt.title('Average Passenger Load Distribution Across Stations')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig('station_load_distribution.png')
         plt.close()
         
         # Feature importance analysis
@@ -186,13 +240,21 @@ class MetroPassengerPredictor:
     
     def _plot_feature_importance(self):
         """Plot feature importance"""
+        if self.feature_names is None:
+            print("Warning: Feature names not available. Skipping feature importance plot.")
+            return
+            
         importances = self.model['regressor'].feature_importances_
-        indices = np.argsort(importances)[-15:]  # Top 15 features
         
-        plt.figure(figsize=(10, 6))
-        plt.title('Top 15 Feature Importances')
-        plt.barh(range(15), importances[indices])
-        plt.yticks(range(15), [self.feature_names[i] for i in indices])
+        # Ensure we don't try to plot more features than we have
+        n_features = min(15, len(self.feature_names))
+        indices = np.argsort(importances)[-n_features:]
+        
+        plt.figure(figsize=(12, 8))
+        plt.title(f'Top {n_features} Feature Importances')
+        plt.barh(range(n_features), importances[indices])
+        plt.yticks(range(n_features), [self.feature_names[i] for i in indices])
+        plt.xlabel('Importance')
         plt.tight_layout()
         plt.savefig('feature_importance.png')
         plt.close()
