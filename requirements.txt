@@ -1,6 +1,11 @@
-pandas>=1.3.0
-numpy>=1.21.0
-scikit-learn>=1.0.0
-joblib>=1.1.0
-matplotlib>=3.4.0
-seaborn>=0.11.0 
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+scikit-learn>=1.2.0
+scipy>=1.10.0
+plotly>=5.13.0
+joblib>=1.2.0
+torch>=2.0.0  # For potential future deep learning implementations
+tqdm>=4.65.0  # For progress bars
+python-dateutil>=2.8.2 

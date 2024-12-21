@@ -1,4 +1,7 @@
+!out/
 *.joblib
 *.txt
-*.png
 *.csv
+.cursorrules
+instructions.md
+__pycache__/
