@@ -122,6 +122,6 @@ Bu proje, Pandora AI - Ostimtech AI Yarışması 2024 için Cyberia ekibi taraf�
 - Yoğun saatlerde alternatif rotalar önermeyi
 hedeflemektedir.
 
-## ✨ Teşekkürler
+## ✨ Teşekkür
 
-Bu proje, cyberia ekibi tarafından geliştirilmiştir. Katkıda bulunan herkese teşekkür ederiz.
+Bu projeyi geliştirmemize yardımcı olan tüm katılımcılara ve destekçilere teşekkür ederiz. Özellikle, Pandora AI - Ostimtech AI Yarışması 2024 organizatörlerine özel teşekkürlerimizi sunuyoruz.
