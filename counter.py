@@ -61,9 +61,11 @@ class PeopleCounter:
         self.previous_positions = current_positions
         
         # Draw counters on frame
-        cv2.putText(frame, f"giris: {self.entries}", (10, 30), 
+        cv2.putText(frame, f"giris: {self.exits}", (10, 30), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(frame, f"cikis: {self.exits}", (10, 70), 
+        cv2.putText(frame, f"cikis: {self.entries}", (10, 70), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, f"metro toplam: {self.exits - self.entries}", (10, 110), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
         return frame
