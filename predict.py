@@ -161,6 +161,7 @@ def make_prediction(predictor, args):
 def main():
     """Main function"""
     args = parse_args()
+    print("Got the args, making prediction...")
     
     if args.train:
         predictor = train_model(args)

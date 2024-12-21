@@ -69,7 +69,7 @@ def parse_args():
 def main():
     """Main function to generate data"""
     args = parse_args()
-    
+    print("Got the args, generating data...")
     # Create output directory if it doesn't exist
     os.makedirs(args.out_dir, exist_ok=True)
     

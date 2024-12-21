@@ -47,6 +47,7 @@ class MetroDataVisualizer:
 
     def generate_all_visualizations(self):
         """Generate all visualizations"""
+        # 
         print("Generating visualizations...")
         
         print("1. Creating daily patterns plot...")
