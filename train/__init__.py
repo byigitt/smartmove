@@ -19,7 +19,7 @@ from .utils import (
 )
 
 __version__ = '1.0.0'
-__author__ = 'Pandora Team'
+__author__ = 'cyberia'
 
 __all__ = [
     'MetroPassengerPredictor',
