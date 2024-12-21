@@ -113,6 +113,11 @@ Katkılarınızı bekliyoruz! Lütfen bir Pull Request göndermekten çekinmeyin
 
 Bu proje MIT Lisansı altında lisanslanmıştır - detaylar için LICENSE dosyasına bakın.
 
+## Eklenecek seyler
+
+1. Uber tarzı bir projeyle anlaşılıp bütün toplu taşımalar doluysa farklı bir seçeneğe gidilebilir.
+2. Paylaşımlı yolculukta kısa mesafeler için kullanılabilir.
+
 ## 🏆 Yarışma Bilgileri
 
 Bu proje, Pandora AI - Ostimtech AI Yarışması 2024 için Cyberia ekibi tarafından geliştirilmiştir. Proje, Ankara Metro sisteminde:
